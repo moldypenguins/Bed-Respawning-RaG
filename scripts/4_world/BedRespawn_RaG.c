@@ -40,7 +40,6 @@ modded class ItemBase
     super.OnPlacementComplete(player, position, orientation);
     if (GetGame().IsServer() && BedFrameWork.IsRaGBedKit(this.GetType()))
     {
-      Print("[Bed-Respawn-RaG] OnPlacementComplete - '" + this.GetType() + "'");
       PlayerBase m_Player = PlayerBase.Cast(player);
       string m_PlayerId = m_Player.GetIdentity().GetId();
 
@@ -55,7 +54,7 @@ modded class ItemBase
         {
           item.SetBedOwner(m_PlayerId);
           item.SetBedUses(BedFrameWork.m_BedConfig.MaxRespawnsBeforeRemoval);
-          Print("[Bed-Respawn-RaG] OnPlacementComplete - '" + item.GetType() + "', belonging to: " + item.GetBedOwner());
+          Print("[Bed-Respawn-RaG] OnPlacementComplete - '" + this.GetType() + "' -> '" + item.GetType() + "', belonging to: " + item.GetBedOwner());
           BedFrameWork.InsertBed(m_Player, item.GetBedOwner(), position, 0, item.GetBedUses());
           break;
         }
@@ -66,7 +65,9 @@ modded class ItemBase
   override void EEDelete(EntityAI parent)
   {
     super.EEDelete(parent);
+
     if ( this.IsHologram() ) return;
+
     if (GetGame().IsServer() && BedFrameWork.IsRaGBed(this.GetType()) && this.GetBedOwner() != "")
     {
       Print("[Bed-Respawn-RaG] EEDelete - '" + this.GetType() + "', belonging to: " + this.GetBedOwner());
@@ -77,11 +78,14 @@ modded class ItemBase
   override void OnStoreSave(ParamsWriteContext ctx)
   {
     super.OnStoreSave(ctx);
-    if (BedFrameWork.IsRaGBed(this.GetType()) && this.GetBedOwner() != "")
+
+    if (BedFrameWork.IsRaGBed(this.GetType()))
     {
-      ctx.Write(this.GetBedOwner());
-      ctx.Write(this.GetBedUses());
-      Print("[Bed-Respawn-RaG] OnStoreSave - '" + this.GetType() + "', belonging to: " + this.GetBedOwner());
+      if (this.GetBedOwner() != "") {
+        ctx.Write(this.GetBedOwner());
+        ctx.Write(this.GetBedUses());
+        Print("[Bed-Respawn-RaG] OnStoreSave - '" + this.GetType() + "', belonging to: " + this.GetBedOwner());
+      }
     }
   }
 
@@ -93,7 +97,6 @@ modded class ItemBase
     {
 			if ( !ctx.Read(this.GetBedOwner()) )
 				return false;
-
 			if ( !ctx.Read(this.GetBedUses()) )
 				return false;
 
